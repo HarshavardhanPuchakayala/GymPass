@@ -121,3 +121,49 @@ export const deleteMember = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+export const getMembersByDueStatus = async (req, res) => {
+  try {
+    const { gymId } = req.params;
+    const { status = "overdue" } = req.query;
+
+    const now = new Date();
+
+    let filter = {
+      gym: gymId,
+    };
+
+    if (status === "overdue") {
+      filter.dueDate = { $lt: now };
+    } else if (status === "upcoming") {
+      const threeDaysLater = new Date(now);
+      threeDaysLater.setDate(threeDaysLater.getDate() + 3);
+
+      filter.dueDate = {
+        $gte: now,
+        $lte: threeDaysLater,
+      };
+    } else {
+      return res.status(400).json({
+        message: "Invalid status. Use overdue or upcoming",
+      });
+    }
+
+    const members = await Member.find(filter)
+      .populate("membershipPlan")
+      .sort({ dueDate: 1 });
+
+    res.json({
+      status,
+      count: members.length,
+      members,
+    });
+  } catch (error) {
+    console.error("Get due status error:", error);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};

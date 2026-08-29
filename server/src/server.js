@@ -9,6 +9,9 @@ import gymRoutes from "./routes/gyms.js";
 import planRoutes from "./routes/plans.js";
 import memberRoutes from "./routes/members.js";
 import checkInRoutes from "./routes/checkins.js";
+
+import "./jobs/reminderJob.js";
+
 dotenv.config()
 
 const Port =process.env.PORT || 3001

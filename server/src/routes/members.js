@@ -6,6 +6,7 @@ import {
   getMember,
   updateMember,
   deleteMember,
+  getMembersByDueStatus
 } from "../controllers/memberController.js";
 
 import { recordPayment } from "../controllers/paymentController.js";
@@ -26,6 +27,7 @@ router.use(
 router.post("/", createMember);
 
 router.get("/", getMembers);
+router.get("/due-status", getMembersByDueStatus);
 
 router.get("/:memberId", getMember);
 
@@ -38,5 +40,6 @@ router.post(
   "/:memberId/payments",
   recordPayment
 );
+
 
 export default router;
