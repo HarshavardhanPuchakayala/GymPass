@@ -7,16 +7,19 @@ const checkInSchema = new mongoose.Schema(
       ref: "Gym",
       required: true,
     },
+
     member: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Member",
       required: true,
     },
+
     checkedInBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
+
     checkedInAt: {
       type: Date,
       default: Date.now,
@@ -28,6 +31,4 @@ const checkInSchema = new mongoose.Schema(
   }
 );
 
-const CheckIn = mongoose.model("CheckIn", checkInSchema);
-
-export default CheckIn;
+export default mongoose.model("CheckIn", checkInSchema);

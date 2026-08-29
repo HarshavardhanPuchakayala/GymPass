@@ -8,7 +8,7 @@ import gymRoutes from "./routes/gyms.js";
 
 import planRoutes from "./routes/plans.js";
 import memberRoutes from "./routes/members.js";
-
+import checkInRoutes from "./routes/checkins.js";
 dotenv.config()
 
 const Port =process.env.PORT || 3001
@@ -27,6 +27,12 @@ app.use(
   "/api/gyms/:gymId/members",
   memberRoutes
 );
+
+app.use(
+  "/api/gyms/:gymId/checkins",
+  checkInRoutes
+);
+
 app.listen(Port ,()=>{
     console.log("server running")
 })
