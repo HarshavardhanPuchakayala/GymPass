@@ -8,6 +8,7 @@ import gymRoutes from "./routes/gyms.js";
 
 import planRoutes from "./routes/plans.js";
 import memberRoutes from "./routes/members.js";
+
 dotenv.config()
 
 const Port =process.env.PORT || 3001
@@ -21,6 +22,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api/gyms", gymRoutes);
 app.use("/api/gyms/:gymId/plans", planRoutes);
 app.use("/api/gyms/:gymId/members", memberRoutes);
+
+app.use(
+  "/api/gyms/:gymId/members",
+  memberRoutes
+);
 app.listen(Port ,()=>{
     console.log("server running")
 })
