@@ -9,3 +9,53 @@ staff b
 
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTkyN2JlZDZmMTA0NWYzOWM0MzAwZDgiLCJpYXQiOjE3ODc5ODQ4NzcsImV4cCI6MTc4ODU4OTY3N30.-vIu1rzxqUo0JaaiLoRPKZ8_xGRnN3inRzdJBG3HqYI
 
+
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTkyN2MxYzZmMTA0NWYzOWM0MzAwZDkiLCJpYXQiOjE3ODc5ODQ5MjQsImV4cCI6MTc4ODU4OTcyNH0.RixN4cGpuUYudqS0VuGX7rPmFHnD8XBLrart6rcl3ho
+
+
+
+{
+  "message": "Gym created successfully",
+  "gym": {
+    "name": "Iron Paradise 2",
+    "address": "456 Oak St",
+    "phone": "555-5678",
+    "_id": "6a927f1c3b20028c6944ef0a",
+    "createdAt": "2026-08-29T06:41:32.544Z",
+    "updatedAt": "2026-08-29T06:41:32.544Z",
+    "__v": 0
+  }
+}
+
+
+
+5.{
+  "membership": {
+    "user": "6a927bed6f1045f39c4300d8",
+    "gym": "6a927f1c3b20028c6944ef0a",
+    "role": "staff",
+    "_id": "6a927f882835ba3036e5c9c2",
+    "createdAt": "2026-08-29T06:43:20.545Z",
+    "updatedAt": "2026-08-29T06:43:20.545Z",
+    "__v": 0
+  }
+}
+
+
+6.{
+  "message": "You are not authorized to perform this action"
+}
+
+7.{
+  "message": "User is already a member of this gym"
+}
+
+8.{
+  "message": "You are not authorized to perform this action"
+}
+
+
+9.{
+  "message": "No account exists with this email. They need to sign up first."
+}
