@@ -1,0 +1,11 @@
+http://localhost:5000/api/auth/signup
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTkyN2JiNDZmMTA0NWYzOWM0MzAwZDciLCJpYXQiOjE3ODc5ODQ4MjAsImV4cCI6MTc4ODU4OTYyMH0.QXceL7yGiNO8qLZabZt4gcILeJtxKujW2-CmYWgfkCA
+staff b
+{
+  "name": "Staff B",
+  "email": "staffb@test.com",
+  "password": "password123"
+}
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTkyN2JlZDZmMTA0NWYzOWM0MzAwZDgiLCJpYXQiOjE3ODc5ODQ4NzcsImV4cCI6MTc4ODU4OTY3N30.-vIu1rzxqUo0JaaiLoRPKZ8_xGRnN3inRzdJBG3HqYI
+

@@ -1,6 +1,6 @@
 import Gym from "../models/Gym.js";
 import StaffMembership from "../models/staffMembership.js";
-
+import User from "../models/User.js";
 export const createGym = async (req, res) => {
   try {
     const { name, address, phone } = req.body;
@@ -70,5 +70,59 @@ export const getGym = async (req, res) => {
   } catch (error) {
     console.error("Get gym error:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const inviteStaff = async (req, res) => {
+  try {
+    const { gymId } = req.params;
+    const { email, role } = req.body;
+
+    if (!email || !role) {
+      return res.status(400).json({
+        message: "Email and role are required",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!["admin", "staff"].includes(role)) {
+      return res.status(400).json({
+        message: "Role must be admin or staff",
+      });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      return res.status(404).json({
+        message:
+          "No account exists with this email. They need to sign up first.",
+      });
+    }
+
+    const existingMembership = await StaffMembership.findOne({
+      user: user._id,
+      gym: gymId,
+    });
+
+    if (existingMembership) {
+      return res.status(409).json({
+        message: "User is already a member of this gym",
+      });
+    }
+
+    const membership = await StaffMembership.create({
+      user: user._id,
+      gym: gymId,
+      role,
+    });
+
+    return res.status(201).json({ membership });
+  } catch (error) {
+    console.error("Invite staff error:", error);
+    return res.status(500).json({
+      message: "Server error",
+    });
   }
 };

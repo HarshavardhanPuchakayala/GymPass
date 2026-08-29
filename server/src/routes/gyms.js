@@ -3,6 +3,7 @@ import {
   createGym,
   getGyms,
   getGym,
+  inviteStaff
 } from "../controllers/gymController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { requireGymRole } from "../middleware/gymAuth.js";
@@ -20,4 +21,10 @@ router.get(
   getGym
 );
 
+router.post(
+  "/:gymId/staff",
+  protect,
+  requireGymRole("owner", "admin"),
+  inviteStaff
+);
 export default router;
