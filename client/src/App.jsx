@@ -7,7 +7,7 @@ import GymDashboard from "./pages/GymDashboard";
 import Members from "./pages/Members.jsx";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { GymProvider } from "./context/GymContext";
-
+import Plans from "./pages/plans.jsx";
 const GymLayout = () => {
   return (
     <GymProvider>
@@ -43,6 +43,9 @@ function App() {
 
   <Route path="members" element={<Members />} />
         </Route>
+
+
+  <Route path="plans" element={<Plans />} />      
       </Routes>
   );
 }
