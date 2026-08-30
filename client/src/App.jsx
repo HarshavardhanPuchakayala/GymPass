@@ -41,32 +41,24 @@ function App() {
       />
 
   
-      <Route
-        path="/gyms/:gymId"
-        element={
-          <ProtectedRoute>
-            <GymLayout />
-          </ProtectedRoute>
-        }
-      >
-    
-        <Route index element={<GymDashboard />} />
+<Route
+  path="/gyms/:gymId"
+  element={
+    <ProtectedRoute>
+      <GymLayout />
+    </ProtectedRoute>
+  }
+>
+  <Route index element={<GymDashboard />} />
 
- 
-        <Route path="members" element={<Members />} />
+  <Route path="members" element={<Members />} />
+  <Route path="members/:memberId" element={<MemberDetail />} />
+  <Route path="plans" element={<Plans />} />
+  <Route path="staff" element={<Staff />} />
+  <Route path="scanner" element={<Scanner />} />
+  <Route path="overdue" element={<Overdue />} />
+</Route>
 
-     
-        <Route
-          path="members/:memberId"
-          element={<MemberDetail />}
-        />
-
-        <Route path="plans" element={<Plans />} />
-
-        <Route path="staff" element={<Staff />} />
-          <Route path="scanner" element={<Scanner />} />
-        <Route path="overdue" element={<Overdue />} />
-      </Route>
     </Routes>
   );
 }
