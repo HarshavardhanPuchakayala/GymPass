@@ -1,6 +1,6 @@
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { QRCodeSVG } from "qrcode.react";
 
 import { getMember } from "../api/members";
 import {
@@ -23,6 +23,7 @@ export default function MemberDetail() {
   const [member, setMember] = useState(null);
   const [payments, setPayments] = useState([]);
   const [checkIns, setCheckIns] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
@@ -40,8 +41,8 @@ export default function MemberDetail() {
         ]);
 
       setMember(memberRes.data.member);
-      setPayments(paymentRes.data.payments);
-      setCheckIns(checkInRes.data.checkIns);
+      setPayments(paymentRes.data.payments || []);
+      setCheckIns(checkInRes.data.checkIns || []);
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -53,7 +54,9 @@ export default function MemberDetail() {
   };
 
   useEffect(() => {
-    loadData();
+    if (gymId && memberId) {
+      loadData();
+    }
   }, [gymId, memberId]);
 
   const handlePayment = async () => {
@@ -71,8 +74,8 @@ export default function MemberDetail() {
 
       await recordPayment(gymId, memberId);
 
-      // Refresh member, payments and check-ins
-      // without a full page reload.
+      // Refresh member, payment history,
+      // and check-in history without page reload.
       await loadData();
     } catch (err) {
       setError(
@@ -85,7 +88,11 @@ export default function MemberDetail() {
   };
 
   if (loading) {
-    return <p className="p-6">Loading...</p>;
+    return (
+      <div className="p-6">
+        <p>Loading member details...</p>
+      </div>
+    );
   }
 
   if (error && !member) {
@@ -99,7 +106,11 @@ export default function MemberDetail() {
   }
 
   if (!member) {
-    return <p className="p-6">Member not found.</p>;
+    return (
+      <div className="p-6">
+        <p>Member not found.</p>
+      </div>
+    );
   }
 
   const status = getStatus(member.dueDate);
@@ -107,42 +118,50 @@ export default function MemberDetail() {
   return (
     <div className="p-6 space-y-8">
 
+      {/* Error message */}
       {error && (
         <div className="rounded bg-red-100 p-3 text-red-700">
           {error}
         </div>
       )}
 
-      {/* Member information */}
-      <section>
-        <div className="flex justify-between items-start">
+      {/* Member Information */}
+      <section className="rounded border p-6">
+        <div className="flex flex-col gap-6 md:flex-row md:justify-between">
+
+          {/* Member Details */}
           <div>
             <h1 className="text-2xl font-bold">
               {member.name}
             </h1>
 
-            <p>
-              Email: {member.email || "—"}
-            </p>
+            <div className="mt-4 space-y-2">
+              <p>
+                <strong>Email:</strong>{" "}
+                {member.email || "—"}
+              </p>
 
-            <p>
-              Phone: {member.phone || "—"}
-            </p>
+              <p>
+                <strong>Phone:</strong>{" "}
+                {member.phone || "—"}
+              </p>
 
-            <p>
-              Plan:{" "}
-              {member.membershipPlan?.name || "—"}
-            </p>
+              <p>
+                <strong>Plan:</strong>{" "}
+                {member.membershipPlan?.name || "—"}
+              </p>
 
-            <p>
-              Due:{" "}
-              {new Date(
-                member.dueDate
-              ).toLocaleDateString()}
-            </p>
+              <p>
+                <strong>Due:</strong>{" "}
+                {new Date(
+                  member.dueDate
+                ).toLocaleDateString()}
+              </p>
+            </div>
 
+            {/* Status */}
             <span
-              className={`inline-block mt-2 rounded px-3 py-1 text-sm ${
+              className={`inline-block mt-4 rounded px-3 py-1 text-sm ${
                 status === "overdue"
                   ? "bg-red-100 text-red-700"
                   : status === "upcoming"
@@ -154,28 +173,53 @@ export default function MemberDetail() {
             </span>
           </div>
 
+          {/* Record Payment */}
           {canRecordPayment && (
-            <button
-              onClick={handlePayment}
-              disabled={paymentLoading}
-              className="rounded bg-green-600 px-4 py-2 text-white disabled:opacity-50"
-            >
-              {paymentLoading
-                ? "Recording..."
-                : "Record Payment"}
-            </button>
+            <div>
+              <button
+                onClick={handlePayment}
+                disabled={paymentLoading}
+                className="rounded bg-green-600 px-4 py-2 text-white disabled:opacity-50"
+              >
+                {paymentLoading
+                  ? "Recording..."
+                  : "Record Payment"}
+              </button>
+            </div>
           )}
         </div>
       </section>
 
-      {/* Payment history */}
+      {/* Member QR Code */}
+      <section className="rounded border p-6">
+        <h2 className="text-xl font-semibold mb-4">
+          Member QR Code
+        </h2>
+
+        <div className="inline-flex flex-col items-center gap-3 rounded border bg-white p-4">
+          <QRCodeSVG
+            value={member._id}
+            size={200}
+            level="M"
+          />
+
+          <p className="text-sm text-gray-600 text-center">
+            Show this QR code at the gym entrance
+            for check-in.
+          </p>
+        </div>
+      </section>
+
+      {/* Payment History */}
       <section>
         <h2 className="text-xl font-semibold mb-3">
           Payment History
         </h2>
 
         {payments.length === 0 ? (
-          <p>No payments yet.</p>
+          <div className="rounded border p-4">
+            <p>No payments yet.</p>
+          </div>
         ) : (
           <div className="space-y-3">
             {payments.map((payment) => (
@@ -184,25 +228,26 @@ export default function MemberDetail() {
                 className="rounded border p-4"
               >
                 <p>
-                  Amount: ₹{payment.amount}
+                  <strong>Amount:</strong> ₹
+                  {payment.amount}
                 </p>
 
                 <p>
-                  Previous due:{" "}
+                  <strong>Previous due:</strong>{" "}
                   {new Date(
                     payment.previousDueDate
                   ).toLocaleDateString()}
                 </p>
 
                 <p>
-                  New due:{" "}
+                  <strong>New due:</strong>{" "}
                   {new Date(
                     payment.newDueDate
                   ).toLocaleDateString()}
                 </p>
 
                 <p>
-                  Paid on:{" "}
+                  <strong>Paid on:</strong>{" "}
                   {new Date(
                     payment.createdAt
                   ).toLocaleString()}
@@ -210,7 +255,7 @@ export default function MemberDetail() {
 
                 {payment.recordedBy && (
                   <p>
-                    Recorded by:{" "}
+                    <strong>Recorded by:</strong>{" "}
                     {payment.recordedBy.name ||
                       payment.recordedBy.email}
                   </p>
@@ -221,14 +266,16 @@ export default function MemberDetail() {
         )}
       </section>
 
-      {/* Check-in history */}
+      {/* Check-in History */}
       <section>
         <h2 className="text-xl font-semibold mb-3">
           Check-In History
         </h2>
 
         {checkIns.length === 0 ? (
-          <p>No check-ins yet.</p>
+          <div className="rounded border p-4">
+            <p>No check-ins yet.</p>
+          </div>
         ) : (
           <div className="space-y-3">
             {checkIns.map((checkIn) => (
@@ -236,10 +283,12 @@ export default function MemberDetail() {
                 key={checkIn._id}
                 className="rounded border p-4"
               >
-                {new Date(
-                  checkIn.checkedInAt ||
-                    checkIn.createdAt
-                ).toLocaleString()}
+                <p>
+                  {new Date(
+                    checkIn.checkedInAt ||
+                      checkIn.createdAt
+                  ).toLocaleString()}
+                </p>
               </div>
             ))}
           </div>

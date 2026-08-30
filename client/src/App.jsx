@@ -8,7 +8,10 @@ import Members from "./pages/Members.jsx";
 import MemberDetail from "./pages/MemberDetail.jsx";
 import Plans from "./pages/plans.jsx";
 import Staff from "./pages/Staff.jsx";
+import Scanner from "./pages/Scanner.jsx";
 import Overdue from "./pages/Overdue.jsx";
+
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import { GymProvider } from "./context/GymContext";
 
@@ -61,6 +64,7 @@ function App() {
         <Route path="plans" element={<Plans />} />
 
         <Route path="staff" element={<Staff />} />
+          <Route path="scanner" element={<Scanner />} />
         <Route path="overdue" element={<Overdue />} />
       </Route>
     </Routes>
