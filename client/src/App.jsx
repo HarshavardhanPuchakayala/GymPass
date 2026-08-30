@@ -4,7 +4,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import GymPicker from "./pages/GymPicker";
 import GymDashboard from "./pages/GymDashboard";
-
+import Members from "./pages/Members.jsx";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { GymProvider } from "./context/GymContext";
 
@@ -40,6 +40,8 @@ function App() {
           }
         >
           <Route index element={<GymDashboard />} />
+
+  <Route path="members" element={<Members />} />
         </Route>
       </Routes>
   );
