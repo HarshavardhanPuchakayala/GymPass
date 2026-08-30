@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
@@ -10,6 +11,7 @@ import {
 } from "../api/members.js";
 
 import api from "../api/axios";
+import { getStatus } from "../utils/memberStatus.js";
 
 const Members = () => {
   const { gym, role, loading: gymLoading } = useGym();
@@ -24,6 +26,7 @@ const Members = () => {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -39,6 +42,7 @@ const Members = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError("");
 
         const [membersRes, plansRes] = await Promise.all([
           getMembers(gymId),
@@ -57,28 +61,10 @@ const Members = () => {
       }
     };
 
-    if (gymId) fetchData();
+    if (gymId) {
+      fetchData();
+    }
   }, [gymId]);
-
-  const getStatus = (dueDate) => {
-    const today = new Date();
-    const due = new Date(dueDate);
-
-    if (due < today) {
-      return "Overdue";
-    }
-
-    const threeDaysLater = new Date();
-    threeDaysLater.setDate(
-      threeDaysLater.getDate() + 3
-    );
-
-    if (due <= threeDaysLater) {
-      return "Upcoming";
-    }
-
-    return "Current";
-  };
 
   const handleChange = (e) => {
     setForm({
@@ -87,8 +73,20 @@ const Members = () => {
     });
   };
 
+  const resetForm = () => {
+    setForm({
+      name: "",
+      email: "",
+      phone: "",
+      membershipPlan: "",
+      dueDate: "",
+    });
+    setEditingId(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setActionError("");
 
     try {
       if (editingId) {
@@ -105,8 +103,6 @@ const Members = () => {
               : member
           )
         );
-
-        setEditingId(null);
       } else {
         const response = await createMember(
           gymId,
@@ -119,15 +115,9 @@ const Members = () => {
         ]);
       }
 
-      setForm({
-        name: "",
-        email: "",
-        phone: "",
-        membershipPlan: "",
-        dueDate: "",
-      });
+      resetForm();
     } catch (error) {
-      alert(
+      setActionError(
         error.response?.data?.message ||
           "Operation failed"
       );
@@ -135,6 +125,7 @@ const Members = () => {
   };
 
   const handleEdit = (member) => {
+    setActionError("");
     setEditingId(member._id);
 
     setForm({
@@ -156,6 +147,8 @@ const Members = () => {
       return;
     }
 
+    setActionError("");
+
     try {
       await deleteMember(gymId, memberId);
 
@@ -165,7 +158,7 @@ const Members = () => {
         )
       );
     } catch (error) {
-      alert(
+      setActionError(
         error.response?.data?.message ||
           "Failed to delete member"
       );
@@ -183,6 +176,12 @@ const Members = () => {
   return (
     <div>
       <h1>{gym?.name} — Members</h1>
+
+      {actionError && (
+        <div>
+          <p>{actionError}</p>
+        </div>
+      )}
 
       {canManage && (
         <form onSubmit={handleSubmit}>
@@ -237,22 +236,15 @@ const Members = () => {
           />
 
           <button type="submit">
-            {editingId ? "Update Member" : "Create Member"}
+            {editingId
+              ? "Update Member"
+              : "Create Member"}
           </button>
 
           {editingId && (
             <button
               type="button"
-              onClick={() => {
-                setEditingId(null);
-                setForm({
-                  name: "",
-                  email: "",
-                  phone: "",
-                  membershipPlan: "",
-                  dueDate: "",
-                });
-              }}
+              onClick={resetForm}
             >
               Cancel
             </button>

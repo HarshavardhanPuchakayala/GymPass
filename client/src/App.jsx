@@ -5,7 +5,12 @@ import Signup from "./pages/Signup";
 import GymPicker from "./pages/GymPicker";
 import GymDashboard from "./pages/GymDashboard";
 import Members from "./pages/Members.jsx";
+import MemberDetail from "./pages/MemberDetail.jsx";
+
 import ProtectedRoute from "./components/ProtectedRoute";
+
+
+
 import { GymProvider } from "./context/GymContext";
 import Plans from "./pages/plans.jsx";
 const GymLayout = () => {
@@ -44,8 +49,12 @@ function App() {
   <Route path="members" element={<Members />} />
         </Route>
 
+  <Route
+  path="members/:memberId"
+  element={<MemberDetail />}
+/>    
+  <Route path="plans" element={<Plans />} />  
 
-  <Route path="plans" element={<Plans />} />      
       </Routes>
   );
 }

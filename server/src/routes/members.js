@@ -9,7 +9,7 @@ import {
   getMembersByDueStatus
 } from "../controllers/memberController.js";
 
-import { recordPayment } from "../controllers/paymentController.js";
+import { recordPayment ,getPayments} from "../controllers/paymentController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
 import { requireGymRole } from "../middleware/gymAuth.js";
@@ -41,5 +41,5 @@ router.post(
   recordPayment
 );
 
-
+router.get("/", getPayments);
 export default router;
