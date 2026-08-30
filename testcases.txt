@@ -59,3 +59,36 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTkyN2MxYzZmMTA0NWYzOWM0MzA
 9.{
   "message": "No account exists with this email. They need to sign up first."
 }
+
+
+
+
+{
+  "member": {
+    "gym": "6a927f1c3b20028c6944ef0a",
+    "name": "Overdue Member",
+    "email": "overdue@test.com",
+    "membershipPlan": "6a928ae5ea4bc0bd4fcebcda",
+    "dueDate": "2026-05-31T00:00:00.000Z",
+    "_id": "6a928f164b8b8378f376e094",
+    "createdAt": "2026-08-29T07:49:42.031Z",
+    "updatedAt": "2026-08-29T07:49:42.031Z",
+    "__v": 0
+  }
+}
+
+
+
+{
+  "member": {
+    "gym": "6a927f1c3b20028c6944ef0a",
+    "name": "Overdue Member",
+    "email": "overdue@test.com",
+    "membershipPlan": "6a928ae5ea4bc0bd4fcebcda",
+    "dueDate": "2026-05-31T00:00:00.000Z",
+    "_id": "6a9290424b8b8378f376e096",
+    "createdAt": "2026-08-29T07:54:42.673Z",
+    "updatedAt": "2026-08-29T07:54:42.673Z",
+    "__v": 0
+  }
+}
