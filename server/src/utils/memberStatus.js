@@ -1,15 +1,34 @@
+// src/utils/memberStatus.js
+
 export const getStatus = (dueDate) => {
-  const due = new Date(dueDate);
   const today = new Date();
+  const due = new Date(dueDate);
 
-  due.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
 
-  const diffDays = Math.ceil(
-    (due - today) / (1000 * 60 * 60 * 24)
-  );
+  if (due < today) {
+    return "overdue";
+  }
 
-  if (diffDays < 0) return "overdue";
-  if (diffDays <= 3) return "upcoming";
+  const threeDaysLater = new Date(today);
+  threeDaysLater.setDate(today.getDate() + 3);
+
+  if (due <= threeDaysLater) {
+    return "upcoming";
+  }
+
   return "current";
+};
+
+export const getDaysDifference = (dueDate) => {
+  const today = new Date();
+  const due = new Date(dueDate);
+
+  today.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+
+  const difference = due.getTime() - today.getTime();
+
+  return Math.round(difference / (1000 * 60 * 60 * 24));
 };
