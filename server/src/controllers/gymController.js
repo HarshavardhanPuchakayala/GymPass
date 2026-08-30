@@ -126,3 +126,22 @@ export const inviteStaff = async (req, res) => {
     });
   }
 };
+
+export const getStaff =async (req,res) => {
+    try {
+        const {gymId} = req.params;
+
+        const staff = await StaffMembership.find({
+            gym:gymId,
+
+        }).populate("user","name email");
+
+        res.json({staff});
+    }catch(error){
+        console.error("Get staff error",error);
+
+        res.status(500).json({
+            message:"Server error"
+        })
+    }
+}
