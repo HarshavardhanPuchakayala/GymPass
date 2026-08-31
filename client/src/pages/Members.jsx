@@ -30,6 +30,7 @@ const EMPTY_FORM = {
   name: "",
   email: "",
   phone: "",
+  password: "",
   membershipPlan: "",
   dueDate: "",
 };
@@ -38,13 +39,6 @@ const Members = () => {
   const { gym, role, loading: gymLoading } = useGym();
   const { gymId } = useParams();
 
-  /*
-   * According to the GymTrack role design:
-   * owner, admin and staff can manage members.
-   *
-   * This is only a frontend gate.
-   * The backend MUST enforce the same permissions.
-   */
   const canManageMembers = ["owner", "admin", "staff"].includes(role);
 
   const [members, setMembers] = useState([]);
@@ -56,24 +50,15 @@ const Members = () => {
   const [actionError, setActionError] = useState("");
 
   const [showForm, setShowForm] = useState(false);
-
   const [form, setForm] = useState(EMPTY_FORM);
 
   const [editingId, setEditingId] = useState(null);
 
   const [submitting, setSubmitting] = useState(false);
-
   const [deletingId, setDeletingId] = useState(null);
 
   /*
-   * Load members and plans.
-   *
-   * We intentionally keep this request together because the member
-   * form requires plans.
-   *
-   * IMPORTANT:
-   * The backend must allow the current role to GET plans if this
-   * page requires plans to create/edit members.
+   * Load members and membership plans.
    */
   useEffect(() => {
     let cancelled = false;
@@ -116,7 +101,7 @@ const Members = () => {
   }, [gymId]);
 
   /*
-   * Update form fields.
+   * Handle form changes.
    */
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -128,7 +113,7 @@ const Members = () => {
   };
 
   /*
-   * Reset the form and close it.
+   * Reset form.
    */
   const resetForm = () => {
     setForm(EMPTY_FORM);
@@ -138,7 +123,7 @@ const Members = () => {
   };
 
   /*
-   * Open a fresh Add Member form.
+   * Open Add Member form.
    */
   const handleAddMember = () => {
     setActionError("");
@@ -148,7 +133,11 @@ const Members = () => {
   };
 
   /*
-   * Submit create/update member.
+   * Create or update member.
+   *
+   * Password:
+   * - Allowed during creation.
+   * - NEVER sent during general member updates.
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -160,16 +149,28 @@ const Members = () => {
 
     try {
       if (editingId) {
-        await updateMember(gymId, editingId, form);
+        /*
+         * Password changes are intentionally NOT supported
+         * by the general update endpoint.
+         */
+        const { password, ...updateData } = form;
+
+        await updateMember(
+          gymId,
+          editingId,
+          updateData
+        );
       } else {
+        /*
+         * Password is optional during creation.
+         *
+         * The backend will hash it before saving.
+         */
         await createMember(gymId, form);
       }
 
       /*
-       * Refetch members after create/update.
-       *
-       * This ensures membershipPlan is populated correctly instead
-       * of relying on the POST/PATCH response shape.
+       * Reload members after create/update.
        */
       const membersRes = await getMembers(gymId);
 
@@ -189,7 +190,10 @@ const Members = () => {
   };
 
   /*
-   * Start editing a member.
+   * Edit member.
+   *
+   * Password is always empty here.
+   * We never retrieve or expose the existing password.
    */
   const handleEdit = (member) => {
     setActionError("");
@@ -201,6 +205,7 @@ const Members = () => {
       name: member.name || "",
       email: member.email || "",
       phone: member.phone || "",
+      password: "",
       membershipPlan:
         member.membershipPlan?._id ||
         member.membershipPlan ||
@@ -210,9 +215,6 @@ const Members = () => {
         : "",
     });
 
-    /*
-     * Scroll to the form so the user immediately sees it.
-     */
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -238,13 +240,11 @@ const Members = () => {
       await deleteMember(gymId, memberId);
 
       setMembers((prev) =>
-        prev.filter((member) => member._id !== memberId)
+        prev.filter(
+          (member) => member._id !== memberId
+        )
       );
 
-      /*
-       * If the deleted member was currently being edited,
-       * close/reset the form.
-       */
       if (editingId === memberId) {
         resetForm();
       }
@@ -266,7 +266,7 @@ const Members = () => {
   }
 
   /*
-   * Initial page-load error.
+   * Initial loading error.
    */
   if (error) {
     return (
@@ -278,9 +278,8 @@ const Members = () => {
 
   return (
     <div className="space-y-8 p-6 md:p-10">
-      {/* ================================
-          PAGE HEADER
-      ================================= */}
+      {/* PAGE HEADER */}
+
       <PageHeader
         eyebrow="Roster"
         title="Members"
@@ -293,41 +292,41 @@ const Members = () => {
               type="button"
               variant="volt"
               onClick={
-                showForm ? resetForm : handleAddMember
+                showForm
+                  ? resetForm
+                  : handleAddMember
               }
             >
-              {showForm ? "Close form" : "+ Add member"}
+              {showForm
+                ? "Close form"
+                : "+ Add member"}
             </Button>
           ) : null
         }
       />
 
-      {/* ================================
-          ACTION ERROR
-      ================================= */}
+      {/* ACTION ERROR */}
+
       {actionError && (
         <ErrorBanner>{actionError}</ErrorBanner>
       )}
 
-      {/* ================================
-          MEMBER FORM
-      ================================= */}
+      {/* MEMBER FORM */}
+
       {canManageMembers && showForm && (
         <Card className="p-6">
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-[var(--ink)]">
-                {editingId
-                  ? "Edit member"
-                  : "Add member"}
-              </h2>
+          <div className="mb-5">
+            <h2 className="font-display text-2xl font-bold text-[var(--ink)]">
+              {editingId
+                ? "Edit member"
+                : "Add member"}
+            </h2>
 
-              <p className="mt-1 text-sm text-[var(--muted)]">
-                {editingId
-                  ? "Update this member's information."
-                  : "Create a member and assign their membership plan."}
-              </p>
-            </div>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              {editingId
+                ? "Update this member's information."
+                : "Create a member and optionally give them member portal access."}
+            </p>
           </div>
 
           {plans.length === 0 ? (
@@ -343,6 +342,7 @@ const Members = () => {
               className="grid gap-4 md:grid-cols-2"
             >
               {/* NAME */}
+
               <Field
                 label="Name"
                 name="name"
@@ -354,6 +354,7 @@ const Members = () => {
               />
 
               {/* EMAIL */}
+
               <Field
                 label="Email"
                 name="email"
@@ -364,7 +365,30 @@ const Members = () => {
                 disabled={submitting}
               />
 
+              {/* PASSWORD */}
+
+              {!editingId && (
+                <div className="md:col-span-2">
+                  <Field
+                    label="Password (optional)"
+                    name="password"
+                    type="password"
+                    placeholder="Leave blank for no member login"
+                    value={form.password}
+                    onChange={handleChange}
+                    disabled={submitting}
+                    autoComplete="new-password"
+                  />
+
+                  <p className="mt-1 text-xs text-[var(--muted)]">
+                    Set a password if this member should
+                    be able to log in to the Member Portal.
+                  </p>
+                </div>
+              )}
+
               {/* PHONE */}
+
               <Field
                 label="Phone"
                 name="phone"
@@ -375,6 +399,7 @@ const Members = () => {
               />
 
               {/* PLAN */}
+
               <Select
                 label="Plan"
                 name="membershipPlan"
@@ -398,6 +423,7 @@ const Members = () => {
               </Select>
 
               {/* DUE DATE */}
+
               <Field
                 label="Due date"
                 name="dueDate"
@@ -409,6 +435,7 @@ const Members = () => {
               />
 
               {/* BUTTONS */}
+
               <div className="flex items-end gap-3 md:col-span-2">
                 <Button
                   type="submit"
@@ -438,18 +465,14 @@ const Members = () => {
         </Card>
       )}
 
-      {/* ================================
-          EMPTY STATE
-      ================================= */}
+      {/* EMPTY STATE */}
+
       {members.length === 0 ? (
         <EmptyState
           title="No members yet"
           hint="Add your first member to start tracking attendance and payments."
         />
       ) : (
-        /* ================================
-           MEMBER GRID
-        ================================= */
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {members.map((member, index) => {
             const status = getStatus(member.dueDate);
@@ -475,6 +498,7 @@ const Members = () => {
               >
                 <div>
                   {/* MEMBER NAME */}
+
                   <Link
                     to={`/gyms/${gymId}/members/${member._id}`}
                   >
@@ -483,17 +507,28 @@ const Members = () => {
                     </h3>
                   </Link>
 
+                  {/* EMAIL */}
+
+                  {member.email && (
+                    <p className="mt-1 text-sm text-[var(--muted)]">
+                      {member.email}
+                    </p>
+                  )}
+
                   {/* PLAN */}
+
                   <p className="mt-1 text-sm text-[var(--muted)]">
                     Plan: {planName}
                   </p>
 
                   {/* DUE DATE */}
+
                   <p className="font-mono text-xs text-[var(--muted)]">
                     Due {dueDate}
                   </p>
 
-                  {/* STATUS */}
+                  {/* MEMBERSHIP STATUS */}
+
                   <div className="mt-3">
                     <Badge tone={statusTone(status)}>
                       {status}
@@ -502,6 +537,7 @@ const Members = () => {
                 </div>
 
                 {/* ACTIONS */}
+
                 {canManageMembers && (
                   <div className="mt-4 flex gap-2 border-t border-[var(--line)] pt-4">
                     <Button

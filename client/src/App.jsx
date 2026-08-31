@@ -1,3 +1,4 @@
+
 import { Routes, Route, Outlet } from "react-router-dom";
 
 import Login from "./pages/Login";
@@ -12,8 +13,15 @@ import Scanner from "./pages/Scanner.jsx";
 import Overdue from "./pages/Overdue.jsx";
 import CreateGym from "./pages/Creategym.jsx";
 import NotFound from "./pages/NotFound.jsx";
+
+import MemberLogin from "./pages/MemberLogin.jsx";
+import MemberDashboard from "./pages/MemberDashboard.jsx";
+
 import ProtectedRoute from "./components/ProtectedRoute";
+import MemberProtectedRoute from "./components/MemberProtectedRoute";
+
 import { GymProvider } from "./context/GymContext";
+import { MemberAuthProvider } from "./context/MemberAuthContext";
 
 const GymLayout = () => {
   return (
@@ -23,14 +31,21 @@ const GymLayout = () => {
   );
 };
 
+const MemberAuthLayout = ({ children }) => {
+  return (
+    <MemberAuthProvider>
+      {children}
+    </MemberAuthProvider>
+  );
+};
+
 function App() {
   return (
     <Routes>
-      {/* Public routes */}
+
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
 
-      {/* Gym picker */}
       <Route
         path="/gyms"
         element={
@@ -40,8 +55,7 @@ function App() {
         }
       />
 
-      {/* Create gym */}
-      {/* This must come before /gyms/:gymId */}
+
       <Route
         path="/gyms/new"
         element={
@@ -51,42 +65,78 @@ function App() {
         }
       />
 
-      {/* Gym routes */}
-      <Route
-        path="/gyms/:gymId"
-        element={
-          <ProtectedRoute>
-            <GymLayout />
-          </ProtectedRoute>
-        }
-      >
-        {/* /gyms/:gymId */}
-        <Route index element={<GymDashboard />} />
 
-        {/* /gyms/:gymId/members */}
-        <Route path="members" element={<Members />} />
+      <Route path="/gyms/:gymId">
 
-        {/* /gyms/:gymId/members/:memberId */}
+
         <Route
-          path="members/:memberId"
-          element={<MemberDetail />}
+          path="member-login"
+          element={
+            <MemberAuthLayout>
+              <MemberLogin />
+            </MemberAuthLayout>
+          }
         />
 
-        {/* /gyms/:gymId/plans */}
-        <Route path="plans" element={<Plans />} />
 
-        {/* /gyms/:gymId/staff */}
-        <Route path="staff" element={<Staff />} />
+        <Route
+          path="my-profile"
+          element={
+            <MemberAuthLayout>
+              <MemberProtectedRoute>
+                <MemberDashboard />
+              </MemberProtectedRoute>
+            </MemberAuthLayout>
+          }
+        />
 
-        {/* /gyms/:gymId/scanner */}
-        <Route path="scanner" element={<Scanner />} />
 
-        {/* /gyms/:gymId/overdue */}
-        <Route path="overdue" element={<Overdue />} />
+        <Route
+          element={
+            <ProtectedRoute>
+              <GymLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<GymDashboard />} />
+
+          <Route
+            path="members"
+            element={<Members />}
+          />
+
+          <Route
+            path="members/:memberId"
+            element={<MemberDetail />}
+          />
+
+          <Route
+            path="plans"
+            element={<Plans />}
+          />
+
+          <Route
+            path="staff"
+            element={<Staff />}
+          />
+
+          <Route
+            path="scanner"
+            element={<Scanner />}
+          />
+
+          <Route
+            path="overdue"
+            element={<Overdue />}
+          />
+        </Route>
       </Route>
 
-      {/* Catch-all */}
-      <Route path="*" element={<NotFound />} />
+
+      <Route
+        path="*"
+        element={<NotFound />}
+      />
     </Routes>
   );
 }
