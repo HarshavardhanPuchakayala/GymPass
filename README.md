@@ -1,3 +1,4 @@
+<img width="1351" height="678" alt="Screenshot 2026-08-31 151007" src="https://github.com/user-attachments/assets/6dcdab2e-91e8-4069-9eae-27207088bbe1" />
 # GymPass — Multi-Tenant Gym Membership & Attendance Platform
 
 A full-stack MERN application for gym owners and staff to manage memberships, track payments, monitor attendance via QR check-in, and automatically remind members of upcoming or overdue payments.
