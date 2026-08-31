@@ -1,1 +1,143 @@
+@import url("https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
 @import "tailwindcss";
+:root {
+  --paper: #f2f4ee;
+  --paper-2: #e9ece2;
+  --ink: #10140f;
+  --ink-2: #1b2119;
+  --ink-3: #232b20;
+  --line: #dcdfd4;
+  --line-strong: #c3c8b8;
+  --muted: #6b7568;
+  --volt: #d7ff3f;
+  --volt-ink: #202b0e;
+  --overdue: #e5484d;
+  --overdue-soft: #fbe2e2;
+  --upcoming: #c98a12;
+  --upcoming-soft: #fbedd0;
+  --good: #1f9d55;
+  --good-soft: #dcf3e4;
+
+  --font-display: "Big Shoulders Display", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+
+.font-display { font-family: var(--font-display); }
+.font-mono { font-family: var(--font-mono); }
+
+.gp-eyebrow {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+/* ---- motion ---------------------------------------------------------- */
+
+@keyframes gp-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gp-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes gp-shimmer {
+  from { background-position: -400px 0; }
+  to   { background-position: 400px 0; }
+}
+
+@keyframes gp-pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(215, 255, 63, 0.55); }
+  70%  { box-shadow: 0 0 0 14px rgba(215, 255, 63, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(215, 255, 63, 0); }
+}
+
+@keyframes gp-scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes gp-underline-in {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@keyframes gp-pop {
+  0%   { transform: scale(0.94); opacity: 0; }
+  60%  { transform: scale(1.02); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+.gp-stagger {
+  opacity: 0;
+  animation: gp-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(var(--gp-i, 0) * 60ms);
+}
+
+.gp-fade-in {
+  animation: gp-fade-in 0.4s ease-out both;
+}
+
+.gp-pop {
+  animation: gp-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.gp-skeleton {
+  background: linear-gradient(90deg, var(--paper-2) 0px, #f6f7f1 40px, var(--paper-2) 80px);
+  background-size: 600px 100%;
+  animation: gp-shimmer 1.6s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+.gp-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.gp-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--line-strong);
+  box-shadow: 0 14px 30px -18px rgba(16, 20, 15, 0.35);
+}
+
+.gp-btn {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.gp-btn:active { transform: scale(0.97); }
+
+.gp-reticle {
+  position: relative;
+  animation: gp-pulse-ring 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.gp-scanline-track {
+  overflow: hidden;
+  position: relative;
+}
+.gp-scanline-track::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, rgba(215, 255, 63, 0.35), transparent);
+  animation: gp-scanline 2.4s ease-in-out infinite;
+}
+
+.gp-tab-underline {
+  animation: gp-underline-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-stagger, .gp-fade-in, .gp-pop, .gp-skeleton, .gp-reticle, .gp-scanline-track::after, .gp-tab-underline, .gp-card {
+    animation: none !important;
+    transition: none !important;
+  }
+}

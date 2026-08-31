@@ -1,10 +1,18 @@
-
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { getMembersByDueStatus } from "../api/dueStatus";
 import { useGym } from "../context/GymContext";
 import { getDaysDifference } from "../utils/memberStatus";
+import {
+  PageHeader,
+  Card,
+  Button,
+  Badge,
+  ErrorBanner,
+  EmptyState,
+  SkeletonPage,
+} from "../components/ui";
 
 export default function Overdue() {
   const { gym } = useGym();
@@ -22,16 +30,12 @@ export default function Overdue() {
         setLoading(true);
         setError("");
 
-        const response = await getMembersByDueStatus(
-          gymId,
-          status
-        );
+        const response = await getMembersByDueStatus(gymId, status);
 
         setMembers(response.data.members || []);
       } catch (err) {
         setError(
-          err.response?.data?.message ||
-            "Failed to load members"
+          err.response?.data?.message || "Failed to load members"
         );
       } finally {
         setLoading(false);
@@ -51,128 +55,158 @@ export default function Overdue() {
   };
 
   if (loading) {
-    return <p className="p-6">Loading...</p>;
+    return <SkeletonPage label="Loading follow-up list" />;
   }
 
-  return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">
-          {gym?.name} — Membership Follow-up
-        </h1>
+  const tabs = [
+    {
+      key: "overdue",
+      label: "Overdue",
+    },
+    {
+      key: "upcoming",
+      label: "Upcoming",
+    },
+  ];
 
-        <p className="text-gray-600">
-          Members who need attention.
-        </p>
-      </div>
+  return (
+    <div className="space-y-8 p-6 md:p-10">
+      <PageHeader
+        eyebrow="Membership"
+        title="Follow-up"
+        subtitle={`${gym?.name || "Gym"} — members who need attention.`}
+      />
 
       {/* Tabs */}
-      <div className="flex gap-3">
-        <button
-          onClick={() => setStatus("overdue")}
-          className={`rounded px-4 py-2 ${
-            status === "overdue"
-              ? "bg-red-600 text-white"
-              : "bg-gray-200"
-          }`}
-        >
-          Overdue
-        </button>
+      <div className="flex gap-6 border-b border-[var(--line)]">
+        {tabs.map((tab) => {
+          const active = status === tab.key;
 
-        <button
-          onClick={() => setStatus("upcoming")}
-          className={`rounded px-4 py-2 ${
-            status === "upcoming"
-              ? "bg-yellow-500 text-white"
-              : "bg-gray-200"
-          }`}
-        >
-          Upcoming
-        </button>
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setStatus(tab.key)}
+              className={`relative pb-3 text-sm font-semibold transition-colors ${
+                active
+                  ? "text-[var(--ink)]"
+                  : "text-[var(--muted)] hover:text-[var(--ink)]"
+              }`}
+            >
+              {tab.label}
+
+              {active && (
+                <span
+                  className={`gp-tab-underline absolute -bottom-px left-0 h-0.5 w-full ${
+                    tab.key === "overdue"
+                      ? "bg-[var(--overdue)]"
+                      : "bg-[var(--upcoming)]"
+                  }`}
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {error && (
-        <div className="rounded bg-red-100 p-3 text-red-700">
-          {error}
-        </div>
-      )}
+      {/* Error */}
+      <ErrorBanner>{error}</ErrorBanner>
 
+      {/* Empty state */}
       {members.length === 0 ? (
-        <div className="rounded border p-6">
-          <p>
-            {status === "overdue"
-              ? "No overdue members."
-              : "No members due soon."}
-          </p>
-        </div>
+        <EmptyState
+          title={
+            status === "overdue"
+              ? "No overdue members"
+              : "No members due soon"
+          }
+          hint="This list refreshes automatically as due dates change."
+        />
       ) : (
-        <div className="space-y-4">
-          {members.map((member) => {
+        <div className="space-y-3">
+          {members.map((member, i) => {
             const days = Math.abs(
               getDaysDifference(member.dueDate)
             );
 
+            const isOverdue = status === "overdue";
+
+            const memberUrl = `/gyms/${gymId}/members/${member._id}`;
+
             return (
-              <div
+              <Card
                 key={member._id}
-                className="rounded border p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+                index={i}
+                className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between"
               >
+                {/* Member information */}
                 <div>
                   <Link
-                    to={`/gyms/${gymId}/members/${member._id}`}
-                    className="text-lg font-semibold"
+                    to={memberUrl}
+                    className="font-display text-xl font-bold text-[var(--ink)] hover:underline"
                   >
                     {member.name}
                   </Link>
 
-                  <p>
+                  <p className="mt-1 text-sm text-[var(--muted)]">
                     Plan:{" "}
-                    {member.membershipPlan?.name ||
-                      "No plan"}
+                    {member.membershipPlan?.name || "No plan"}
                   </p>
 
-                  <p>
-                    Due:{" "}
-                    {new Date(
-                      member.dueDate
-                    ).toLocaleDateString()}
+                  <p className="font-mono text-xs text-[var(--muted)]">
+                    Due{" "}
+                    {new Date(member.dueDate).toLocaleDateString()}
                   </p>
 
-                  {status === "overdue" ? (
-                    <p className="font-semibold text-red-600">
-                      {days} day{days !== 1 ? "s" : ""} overdue
-                    </p>
-                  ) : (
-                    <p className="font-semibold text-yellow-600">
-                      Due in {days} day{days !== 1 ? "s" : ""}
-                    </p>
-                  )}
+                  <div className="mt-2">
+                    <Badge
+                      tone={isOverdue ? "overdue" : "upcoming"}
+                    >
+                      {isOverdue
+                        ? `${days} day${
+                            days !== 1 ? "s" : ""
+                          } overdue`
+                        : `Due in ${days} day${
+                            days !== 1 ? "s" : ""
+                          }`}
+                    </Badge>
+                  </div>
                 </div>
 
+                {/* Actions */}
                 <div className="flex items-center gap-3">
-                  <button
+                  {/* Mark contacted */}
+                  <Button
+                    type="button"
+                    variant="ghost"
                     onClick={() =>
                       toggleContacted(member._id)
                     }
-                    className={`rounded px-3 py-2 ${
+                    className={
                       contacted[member._id]
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-200"
-                    }`}
+                        ? "!bg-[var(--good-soft)] !text-[var(--good)] !border-transparent"
+                        : ""
+                    }
                   >
                     {contacted[member._id]
                       ? "✓ Contacted"
-                      : "Mark Contacted"}
-                  </button>
+                      : "Mark contacted"}
+                  </Button>
 
+                  {/* Record payment */}
                   <Link
-                    to={`/gyms/${gymId}/members/${member._id}`}
-                    className="rounded bg-green-600 px-4 py-2 text-white"
+                    to={memberUrl}
+                    className="inline-block"
                   >
-                    Record Payment
+                    <Button
+                      type="button"
+                      variant="volt"
+                    >
+                      Record payment
+                    </Button>
                   </Link>
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>

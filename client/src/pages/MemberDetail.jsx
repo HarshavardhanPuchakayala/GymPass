@@ -3,22 +3,17 @@ import { useParams } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 
 import { getMember } from "../api/members";
-import {
-  getPayments,
-  recordPayment,
-} from "../api/payments";
+import { getPayments, recordPayment } from "../api/payments";
 import { getCheckIns } from "../api/checkins";
 import { useGym } from "../context/GymContext";
 import { getStatus } from "../utils/memberStatus.js";
+import { Card, Button, Badge, ErrorBanner, EmptyState, SkeletonPage, statusTone } from "../components/ui";
 
 export default function MemberDetail() {
   const { gymId, memberId } = useParams();
   const { role } = useGym();
 
-  const canRecordPayment =
-    role === "owner" ||
-    role === "admin" ||
-    role === "staff";
+  const canRecordPayment = role === "owner" || role === "admin" || role === "staff";
 
   const [member, setMember] = useState(null);
   const [payments, setPayments] = useState([]);
@@ -33,263 +28,124 @@ export default function MemberDetail() {
       setLoading(true);
       setError("");
 
-      const [memberRes, paymentRes, checkInRes] =
-        await Promise.all([
-          getMember(gymId, memberId),
-          getPayments(gymId, memberId),
-          getCheckIns(gymId, memberId),
-        ]);
+      const [memberRes, paymentRes, checkInRes] = await Promise.all([
+        getMember(gymId, memberId),
+        getPayments(gymId, memberId),
+        getCheckIns(gymId, memberId),
+      ]);
 
       setMember(memberRes.data.member);
       setPayments(paymentRes.data.payments || []);
       setCheckIns(checkInRes.data.checkIns || []);
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Failed to load member details"
-      );
+      setError(err.response?.data?.message || "Failed to load member details");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (gymId && memberId) {
-      loadData();
-    }
+    if (gymId && memberId) loadData();
   }, [gymId, memberId]);
 
   const handlePayment = async () => {
-    if (
-      !window.confirm(
-        "Record payment for this member?"
-      )
-    ) {
-      return;
-    }
+    if (!window.confirm("Record payment for this member?")) return;
 
     try {
       setPaymentLoading(true);
       setError("");
-
       await recordPayment(gymId, memberId);
-
-      // Refresh member, payment history,
-      // and check-in history without page reload.
       await loadData();
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Failed to record payment"
-      );
+      setError(err.response?.data?.message || "Failed to record payment");
     } finally {
       setPaymentLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="p-6">
-        <p>Loading member details...</p>
-      </div>
-    );
-  }
-
-  if (error && !member) {
-    return (
-      <div className="p-6">
-        <div className="rounded bg-red-100 p-3 text-red-700">
-          {error}
-        </div>
-      </div>
-    );
-  }
-
-  if (!member) {
-    return (
-      <div className="p-6">
-        <p>Member not found.</p>
-      </div>
-    );
-  }
+  if (loading) return <SkeletonPage label="Loading member" />;
+  if (error && !member) return <div className="p-6 md:p-10"><ErrorBanner>{error}</ErrorBanner></div>;
+  if (!member) return <div className="p-6 md:p-10"><EmptyState title="Member not found" /></div>;
 
   const status = getStatus(member.dueDate);
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="space-y-8 p-6 md:p-10">
+      <ErrorBanner>{error}</ErrorBanner>
 
-      {/* Error message */}
-      {error && (
-        <div className="rounded bg-red-100 p-3 text-red-700">
-          {error}
-        </div>
-      )}
-
-      {/* Member Information */}
-      <section className="rounded border p-6">
-        <div className="flex flex-col gap-6 md:flex-row md:justify-between">
-
-          {/* Member Details */}
-          <div>
-            <h1 className="text-2xl font-bold">
-              {member.name}
-            </h1>
-
-            <div className="mt-4 space-y-2">
-              <p>
-                <strong>Email:</strong>{" "}
-                {member.email || "—"}
-              </p>
-
-              <p>
-                <strong>Phone:</strong>{" "}
-                {member.phone || "—"}
-              </p>
-
-              <p>
-                <strong>Plan:</strong>{" "}
-                {member.membershipPlan?.name || "—"}
-              </p>
-
-              <p>
-                <strong>Due:</strong>{" "}
-                {new Date(
-                  member.dueDate
-                ).toLocaleDateString()}
-              </p>
-            </div>
-
-            {/* Status */}
-            <span
-              className={`inline-block mt-4 rounded px-3 py-1 text-sm ${
-                status === "overdue"
-                  ? "bg-red-100 text-red-700"
-                  : status === "upcoming"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : "bg-green-100 text-green-700"
-              }`}
-            >
-              {status}
-            </span>
-          </div>
-
-          {/* Record Payment */}
-          {canRecordPayment && (
+      {/* Profile + QR */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="p-6 lg:col-span-2">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <button
-                onClick={handlePayment}
-                disabled={paymentLoading}
-                className="rounded bg-green-600 px-4 py-2 text-white disabled:opacity-50"
-              >
-                {paymentLoading
-                  ? "Recording..."
-                  : "Record Payment"}
-              </button>
+              <p className="gp-eyebrow mb-1">Member</p>
+              <h1 className="font-display text-4xl font-bold leading-none text-[var(--ink)]">{member.name}</h1>
+
+              <div className="mt-5 grid gap-2 text-sm sm:grid-cols-2">
+                <p><span className="text-[var(--muted)]">Email</span><br />{member.email || "—"}</p>
+                <p><span className="text-[var(--muted)]">Phone</span><br />{member.phone || "—"}</p>
+                <p><span className="text-[var(--muted)]">Plan</span><br />{member.membershipPlan?.name || "—"}</p>
+                <p><span className="text-[var(--muted)]">Due</span><br />{new Date(member.dueDate).toLocaleDateString()}</p>
+              </div>
+
+              <div className="mt-4"><Badge tone={statusTone(status)}>{status}</Badge></div>
             </div>
-          )}
-        </div>
-      </section>
 
-      {/* Member QR Code */}
-      <section className="rounded border p-6">
-        <h2 className="text-xl font-semibold mb-4">
-          Member QR Code
-        </h2>
+            {canRecordPayment && (
+              <Button variant="volt" onClick={handlePayment} disabled={paymentLoading}>
+                {paymentLoading ? "Recording…" : "Record payment"}
+              </Button>
+            )}
+          </div>
+        </Card>
 
-        <div className="inline-flex flex-col items-center gap-3 rounded border bg-white p-4">
-          <QRCodeSVG
-            value={member._id}
-            size={200}
-            level="M"
-          />
+        <Card className="flex flex-col items-center justify-center gap-3 p-6 text-center">
+          <p className="gp-eyebrow">Entry pass</p>
+          <div className=" rounded-xl border border-[var(--line)] bg-white p-4">
+            <QRCodeSVG value={member._id} size={168} level="M" />
+          </div>
+          <p className="text-xs text-[var(--muted)]">Show this at the gym entrance to check in.</p>
+        </Card>
+      </div>
 
-          <p className="text-sm text-gray-600 text-center">
-            Show this QR code at the gym entrance
-            for check-in.
-          </p>
-        </div>
-      </section>
-
-      {/* Payment History */}
+      {/* Payment history */}
       <section>
-        <h2 className="text-xl font-semibold mb-3">
-          Payment History
-        </h2>
+        <h2 className="mb-3 font-display text-2xl font-bold text-[var(--ink)]">Payment history</h2>
 
         {payments.length === 0 ? (
-          <div className="rounded border p-4">
-            <p>No payments yet.</p>
-          </div>
+          <EmptyState title="No payments yet" />
         ) : (
           <div className="space-y-3">
-            {payments.map((payment) => (
-              <div
-                key={payment._id}
-                className="rounded border p-4"
-              >
-                <p>
-                  <strong>Amount:</strong> ₹
-                  {payment.amount}
+            {payments.map((payment, i) => (
+              <Card key={payment._id} index={i} className="p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-display text-2xl font-bold text-[var(--good)]">₹{payment.amount}</p>
+                  <p className="font-mono text-xs text-[var(--muted)]">{new Date(payment.createdAt).toLocaleString()}</p>
+                </div>
+                <p className="mt-2 text-sm text-[var(--muted)]">
+                  {new Date(payment.previousDueDate).toLocaleDateString()} → {new Date(payment.newDueDate).toLocaleDateString()}
                 </p>
-
-                <p>
-                  <strong>Previous due:</strong>{" "}
-                  {new Date(
-                    payment.previousDueDate
-                  ).toLocaleDateString()}
-                </p>
-
-                <p>
-                  <strong>New due:</strong>{" "}
-                  {new Date(
-                    payment.newDueDate
-                  ).toLocaleDateString()}
-                </p>
-
-                <p>
-                  <strong>Paid on:</strong>{" "}
-                  {new Date(
-                    payment.createdAt
-                  ).toLocaleString()}
-                </p>
-
                 {payment.recordedBy && (
-                  <p>
-                    <strong>Recorded by:</strong>{" "}
-                    {payment.recordedBy.name ||
-                      payment.recordedBy.email}
-                  </p>
+                  <p className="mt-1 text-xs text-[var(--muted)]">Recorded by {payment.recordedBy.name || payment.recordedBy.email}</p>
                 )}
-              </div>
+              </Card>
             ))}
           </div>
         )}
       </section>
 
-      {/* Check-in History */}
+      {/* Check-in history */}
       <section>
-        <h2 className="text-xl font-semibold mb-3">
-          Check-In History
-        </h2>
+        <h2 className="mb-3 font-display text-2xl font-bold text-[var(--ink)]">Check-in history</h2>
 
         {checkIns.length === 0 ? (
-          <div className="rounded border p-4">
-            <p>No check-ins yet.</p>
-          </div>
+          <EmptyState title="No check-ins yet" />
         ) : (
-          <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
             {checkIns.map((checkIn) => (
-              <div
-                key={checkIn._id}
-                className="rounded border p-4"
-              >
-                <p>
-                  {new Date(
-                    checkIn.checkedInAt ||
-                      checkIn.createdAt
-                  ).toLocaleString()}
-                </p>
-              </div>
+              <span key={checkIn._id} className="gp-pop rounded-full border border-[var(--line)] bg-white px-3 py-1.5 font-mono text-xs text-[var(--ink)]">
+                {new Date(checkIn.checkedInAt || checkIn.createdAt).toLocaleString()}
+              </span>
             ))}
           </div>
         )}

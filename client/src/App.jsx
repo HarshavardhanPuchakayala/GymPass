@@ -10,8 +10,8 @@ import Plans from "./pages/plans.jsx";
 import Staff from "./pages/Staff.jsx";
 import Scanner from "./pages/Scanner.jsx";
 import Overdue from "./pages/Overdue.jsx";
-
-
+import CreateGym from "./pages/Creategym.jsx";
+import NotFound from "./pages/NotFound.jsx";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { GymProvider } from "./context/GymContext";
 
@@ -26,11 +26,11 @@ const GymLayout = () => {
 function App() {
   return (
     <Routes>
-    
+      {/* Public routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
 
-
+      {/* Gym picker */}
       <Route
         path="/gyms"
         element={
@@ -40,25 +40,53 @@ function App() {
         }
       />
 
-  
-<Route
-  path="/gyms/:gymId"
-  element={
-    <ProtectedRoute>
-      <GymLayout />
-    </ProtectedRoute>
-  }
->
-  <Route index element={<GymDashboard />} />
+      {/* Create gym */}
+      {/* This must come before /gyms/:gymId */}
+      <Route
+        path="/gyms/new"
+        element={
+          <ProtectedRoute>
+            <CreateGym />
+          </ProtectedRoute>
+        }
+      />
 
-  <Route path="members" element={<Members />} />
-  <Route path="members/:memberId" element={<MemberDetail />} />
-  <Route path="plans" element={<Plans />} />
-  <Route path="staff" element={<Staff />} />
-  <Route path="scanner" element={<Scanner />} />
-  <Route path="overdue" element={<Overdue />} />
-</Route>
+      {/* Gym routes */}
+      <Route
+        path="/gyms/:gymId"
+        element={
+          <ProtectedRoute>
+            <GymLayout />
+          </ProtectedRoute>
+        }
+      >
+        {/* /gyms/:gymId */}
+        <Route index element={<GymDashboard />} />
 
+        {/* /gyms/:gymId/members */}
+        <Route path="members" element={<Members />} />
+
+        {/* /gyms/:gymId/members/:memberId */}
+        <Route
+          path="members/:memberId"
+          element={<MemberDetail />}
+        />
+
+        {/* /gyms/:gymId/plans */}
+        <Route path="plans" element={<Plans />} />
+
+        {/* /gyms/:gymId/staff */}
+        <Route path="staff" element={<Staff />} />
+
+        {/* /gyms/:gymId/scanner */}
+        <Route path="scanner" element={<Scanner />} />
+
+        {/* /gyms/:gymId/overdue */}
+        <Route path="overdue" element={<Overdue />} />
+      </Route>
+
+      {/* Catch-all */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

@@ -4,6 +4,7 @@ import { Html5Qrcode } from "html5-qrcode";
 
 import { checkInMember } from "../api/checkins";
 import { useGym } from "../context/GymContext";
+import { PageHeader } from "../components/ui";
 
 export default function Scanner() {
   const { gym } = useGym();
@@ -26,46 +27,23 @@ export default function Scanner() {
       try {
         await scanner.start(
           { facingMode: "environment" },
-          {
-            fps: 10,
-            qrbox: 250,
-          },
+          { fps: 10, qrbox: 250 },
           async (decodedText) => {
-            if (processingRef.current) {
-              return;
-            }
-
+            if (processingRef.current) return;
             processingRef.current = true;
 
             setStatus("processing");
             setMessage("Checking member...");
 
             try {
-              const response = await checkInMember(
-                gymId,
-                decodedText
-              );
-
-              if (!mountedRef.current) {
-                return;
-              }
-
+              const response = await checkInMember(gymId, decodedText);
+              if (!mountedRef.current) return;
               setStatus("success");
-              setMessage(
-                response.data.message ||
-                  "Member checked in successfully."
-              );
+              setMessage(response.data.message || "Member checked in successfully.");
             } catch (error) {
-              if (!mountedRef.current) {
-                return;
-              }
-
+              if (!mountedRef.current) return;
               setStatus("error");
-
-              setMessage(
-                error.response?.data?.message ||
-                  "Check-in failed."
-              );
+              setMessage(error.response?.data?.message || "Check-in failed.");
             } finally {
               if (mountedRef.current) {
                 setTimeout(() => {
@@ -76,20 +54,12 @@ export default function Scanner() {
               }
             }
           },
-          () => {
-            // Ignore continuous scanner errors
-          }
+          () => {}
         );
       } catch (error) {
-        if (!mountedRef.current) {
-          return;
-        }
-
+        if (!mountedRef.current) return;
         setStatus("error");
-
-        setMessage(
-          "Unable to start camera. Please allow camera access and try again."
-        );
+        setMessage("Unable to start camera. Please allow camera access and try again.");
       }
     };
 
@@ -101,16 +71,10 @@ export default function Scanner() {
 
       const stopScanner = async () => {
         try {
-          if (scanner.isScanning) {
-            await scanner.stop();
-          }
-
+          if (scanner.isScanning) await scanner.stop();
           scanner.clear();
         } catch (error) {
-          console.error(
-            "Scanner cleanup error:",
-            error
-          );
+          console.error("Scanner cleanup error:", error);
         }
       };
 
@@ -118,39 +82,46 @@ export default function Scanner() {
     };
   }, [gymId]);
 
+  const statusStyles = {
+    success: "bg-[var(--good-soft)] text-[var(--good)] border-[var(--good)]/30",
+    error: "bg-[var(--overdue-soft)] text-[var(--overdue)] border-[var(--overdue)]/30",
+    processing: "bg-[var(--upcoming-soft)] text-[var(--upcoming)] border-[var(--upcoming)]/30",
+  };
+
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">
-          {gym?.name} — Check-In Scanner
-        </h1>
+    <div className="min-h-screen space-y-8 bg-[var(--ink)] p-6 text-white md:p-10">
+      <PageHeader
+        tone="dark"
+        eyebrow="Front desk"
+        title={`${gym?.name || ""} — Check-in`}
+        subtitle="Point the camera at the member's QR code."
+      />
 
-        <p className="text-gray-600">
-          Scan a member's QR code to record their visit.
-        </p>
-      </div>
+      <div className="mx-auto max-w-md">
+        {/* Reticle frame */}
+        <div className="gp-reticle gp-scanline-track relative mx-auto aspect-square w-full overflow-hidden rounded-3xl border-2 border-[var(--volt)]/70 bg-black">
+          <div id="reader" className="h-full w-full [&_video]:h-full [&_video]:w-full [&_video]:object-cover" />
 
-      {message && (
-        <div
-          className={`rounded p-4 ${
-            status === "success"
-              ? "bg-green-100 text-green-700"
-              : status === "error"
-              ? "bg-red-100 text-red-700"
-              : "bg-yellow-100 text-yellow-700"
-          }`}
-        >
-          {message}
+          {/* corner marks */}
+          {["top-3 left-3 border-t-2 border-l-2", "top-3 right-3 border-t-2 border-r-2", "bottom-3 left-3 border-b-2 border-l-2", "bottom-3 right-3 border-b-2 border-r-2"].map(
+            (pos, i) => (
+              <span key={i} className={`pointer-events-none absolute h-6 w-6 rounded-sm border-[var(--volt)] ${pos}`} />
+            )
+          )}
         </div>
-      )}
 
-      <div className="max-w-md rounded border bg-white p-4">
-        <div id="reader" />
+        {message && (
+          <div className={`gp-pop mt-6 rounded-xl border p-4 text-center text-sm font-semibold ${statusStyles[status] || "bg-white/10 text-white"}`}>
+            {message}
+          </div>
+        )}
+
+        {!message && (
+          <p className="mt-6 text-center font-mono text-xs uppercase tracking-widest text-white/40">
+            Awaiting scan…
+          </p>
+        )}
       </div>
-
-      <p className="text-sm text-gray-500">
-        Point the camera at the member's QR code.
-      </p>
     </div>
   );
 }

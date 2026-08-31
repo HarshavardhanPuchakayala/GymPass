@@ -7,25 +7,34 @@ const memberSchema = new mongoose.Schema(
       ref: "Gym",
       required: true,
     },
+
     name: {
       type: String,
       required: true,
       trim: true,
     },
+
     phone: {
       type: String,
       trim: true,
     },
+
     email: {
       type: String,
       lowercase: true,
       trim: true,
     },
+
+    password: {
+      type: String,
+    },
+
     membershipPlan: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "MembershipPlan",
       required: true,
     },
+
     dueDate: {
       type: Date,
       required: true,
@@ -33,6 +42,16 @@ const memberSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+  }
+);
+
+memberSchema.index(
+  { gym: 1, email: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      email: { $exists: true },
+    },
   }
 );
 

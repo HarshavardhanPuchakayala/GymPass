@@ -42,7 +42,9 @@ export const getGyms = async (req, res) => {
       user: req.userId,
     }).populate("gym");
 
-    const gyms = memberships.map((membership) => membership.gym);
+    const gyms = memberships
+      .filter((membership) => membership.gym)
+      .map((membership) => ({ gym: membership.gym, role: membership.role }));
 
     res.json({ gyms });
   } catch (error) {
